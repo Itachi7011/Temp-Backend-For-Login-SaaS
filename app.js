@@ -88,13 +88,39 @@ app.get('/api/registrationLink', async (req, res, next) => {
         const authnestClientApiKey = process.env.CLIENT_AUTHNEST_API_KEY;
         const authnestClientSecretKey = process.env.CLIENT_AUTHNEST_SECRET_KEY;
         const state = crypto.randomBytes(12).toString('hex');
+        console.log("registration link pressed")
 
         // Instead of making a fetch request, construct the redirect URL directly
         let redirectUrl;
         if (process.env.NODE_ENV == "production") {
-            redirectUrl = `https://userloginauthenticationmicroservice.onrender.com/api/registration-forms/grabApiKeys?client_api_key=${authnestClientApiKey}&client_secret_key=${authnestClientSecretKey}&state=${state}&redirect_uri=${encodeURIComponent('/api/auth/callback')}`;
+            redirectUrl = `https://userloginauthenticationmicroservice.onrender.com/api/registration-forms/grabApiKeys?client_api_key=${authnestClientApiKey}&client_secret_key=${authnestClientSecretKey}&state=${state}&url=${`UserRegistration`}&redirect_uri=${encodeURIComponent('/api/auth/callback')}`;
         } else {
-            redirectUrl = `http://localhost:5000/api/registration-forms/grabApiKeys?client_api_key=${authnestClientApiKey}&client_secret_key=${authnestClientSecretKey}&state=${state}&redirect_uri=${encodeURIComponent('/api/auth/callback')}`;
+            redirectUrl = `http://localhost:5000/api/registration-forms/grabApiKeys?client_api_key=${authnestClientApiKey}&client_secret_key=${authnestClientSecretKey}&state=${state}&url=${`UserRegistration`}&redirect_uri=${encodeURIComponent('/api/auth/callback')}`;
+        }
+
+
+        // Redirect the client directly to the authentication service
+        res.redirect(redirectUrl);
+
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get('/api/loginLink', async (req, res, next) => {
+    try {
+        const authnestClientApiKey = process.env.CLIENT_AUTHNEST_API_KEY;
+        const authnestClientSecretKey = process.env.CLIENT_AUTHNEST_SECRET_KEY;
+        const state = crypto.randomBytes(12).toString('hex');
+
+        console.log("login link pressed")
+
+        // Instead of making a fetch request, construct the redirect URL directly
+        let redirectUrl;
+        if (process.env.NODE_ENV == "production") {
+            redirectUrl = `https://userloginauthenticationmicroservice.onrender.com/api/registration-forms/grabApiKeys?client_api_key=${authnestClientApiKey}&client_secret_key=${authnestClientSecretKey}&state=${state}&url=${`UserLogin`}&redirect_uri=${encodeURIComponent('/api/auth/callback')}`;
+        } else {
+            redirectUrl = `http://localhost:5000/api/registration-forms/grabApiKeys?client_api_key=${authnestClientApiKey}&client_secret_key=${authnestClientSecretKey}&state=${state}&url=${`UserLogin`}&redirect_uri=${encodeURIComponent('/api/auth/callback')}`;
         }
 
 
