@@ -116,7 +116,7 @@ app.get('/api/loginLink', async (req, res, next) => {
         if (process.env.NODE_ENV == "production") {
             redirectUrl = `${authnestClientBackendURL}/api/registration-forms/grabApiKeys?client_api_key=${authnestClientApiKey}&client_secret_key=${authnestClientSecretKey}&state=${state}&url=${`UserLogin`}&redirect_uri=${encodeURIComponent('/api/auth/callback')}`;
         } else {
-            redirectUrl = `${authnestClientBackendURL}/api/registration-forms/grabApiKeys?client_api_key=${authnestClientApiKey}&client_secret_key=${authnestClientSecretKey}&state=${state}&url=${`UserLogin`}&redirect_uri=${encodeURIComponent('/api/auth/callback')}`;
+            redirectUrl = `http://localhost:5000/api/registration-forms/grabApiKeys?client_api_key=${authnestClientApiKey}&client_secret_key=${authnestClientSecretKey}&state=${state}&url=${`UserLogin`}&redirect_uri=${encodeURIComponent('/api/auth/callback')}`;
         }
 
 
@@ -283,7 +283,7 @@ app.get('/api/auth/client-data-callback', async (req, res, next) => {
     try {
         const { token, data, error, state } = req.query;
 
-        console.log('Received callback with token:', token);
+        // console.log('Received callback with token:', token);
         console.log('Has data:', !!data);
 
         if (error) {
