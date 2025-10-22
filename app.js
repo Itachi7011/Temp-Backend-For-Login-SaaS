@@ -29,6 +29,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 app.get('/api/registrationLink', (req, res) => {
     const redirectUrl = authnest.getRegistrationLink();
     res.redirect(redirectUrl);
+
 });
 
 // For Login (Users that already Registerd / Signup Using Our Authnest System )
@@ -36,6 +37,58 @@ app.get('/api/loginLink', (req, res) => {
     const redirectUrl = authnest.getLoginLink();
     res.redirect(redirectUrl);
 });
+
+app.get('/api/emailVerificationLink', (req, res) => {
+    const redirectUrl = authnest.getEmailVerificationLink();
+    res.redirect(redirectUrl);
+});
+
+// For Forgot Password
+app.get('/api/forgotPasswordLink', (req, res) => {
+    const redirectUrl = authnest.getForgotPasswordLink();
+    res.redirect(redirectUrl);
+});
+
+// For General Settings
+app.get('/api/generalSettingsLink', (req, res) => {
+    const redirectUrl = authnest.getGeneralSettingsLink();
+    res.redirect(redirectUrl);
+});
+
+// For Security Settings
+app.get('/api/securitySettingsLink', (req, res) => {
+    const redirectUrl = authnest.getSecuritySettingsLink();
+    res.redirect(redirectUrl);
+});
+
+// For Notifications Settings
+app.get('/api/notificationsSettingsLink', (req, res) => {
+    const redirectUrl = authnest.getNotificationsSettingsLink();
+    res.redirect(redirectUrl);
+});
+
+// New modal session endpoint
+app.post('/authnest/modal-session', (req, res) => {
+  const { modalType, modalId, userContext, parentUrl } = req.body;
+  
+  const session = authnest.get2FAModalSession({
+    userContext,
+    parentUrl,
+    redirect_uri: '/api/auth/modal-callback'
+  });
+  
+  res.json({
+    modalId,
+    iframeUrl: session.iframeUrl,
+    sessionId: session.sessionId
+  });
+});
+
+// Modal callback (existing pattern)
+app.get('/api/auth/modal-callback', (req, res) => {
+  authnest.handleModalCallback(req, res);
+});
+
 
 // For Fetching Clients Own Data
 
