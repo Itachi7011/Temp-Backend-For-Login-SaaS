@@ -25,17 +25,54 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 // Simplified endpoints using the AuthNestClient package
 
-// For New User Register/Signup
 app.get('/api/registrationLink', (req, res) => {
-    const redirectUrl = authnest.getRegistrationLink();
+    const sessionId = req.query.session_id; // Get session ID from frontend
+    const redirectUrl = authnest.getRegistrationLink(null, null, sessionId);
+    console.log('Registration redirect with session:', sessionId);
     res.redirect(redirectUrl);
-
 });
 
-// For Login (Users that already Registerd / Signup Using Our Authnest System )
 app.get('/api/loginLink', (req, res) => {
-    const redirectUrl = authnest.getLoginLink();
+    const sessionId = req.query.session_id;
+    
+ 
+    // console.log('🔐 session_id received from frontend:', sessionId);
+    
+    const redirectUrl = authnest.getLoginLink(null, null, sessionId);
+    
+    // console.log('🔐 Redirect URL returned by npm package:', redirectUrl);
+    // console.log('🔐 Does URL contain session_id?:', redirectUrl.includes('session_id'));
+    
     res.redirect(redirectUrl);
+});
+
+// Simple route that uses your existing npm package
+app.get('/api/getUserData', async (req, res) => {
+    try {
+        const sessionId = req.query.session_id;
+        
+        console.log('🔐 GetUserData - session_id received:', sessionId);
+
+        if (!sessionId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Session ID is required'
+            });
+        }
+
+        // Use your existing getUserDataBySession method
+        const redirectUrl = authnest.getUserDataBySession(sessionId);
+        
+        console.log('🔐 Redirecting to SaaS:', redirectUrl);
+        res.redirect(redirectUrl);
+
+    } catch (error) {
+        console.error('Error in getUserData route:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch user data'
+        });
+    }
 });
 
 app.get('/api/emailVerificationLink', (req, res) => {
@@ -49,44 +86,44 @@ app.get('/api/forgotPasswordLink', (req, res) => {
     res.redirect(redirectUrl);
 });
 
-// For General Settings
 app.get('/api/generalSettingsLink', (req, res) => {
-    const redirectUrl = authnest.getGeneralSettingsLink();
+    const sessionId = req.query.session_id;
+    const redirectUrl = authnest.getGeneralSettingsLink(null, null, sessionId);
     res.redirect(redirectUrl);
 });
 
-// For Security Settings
 app.get('/api/securitySettingsLink', (req, res) => {
-    const redirectUrl = authnest.getSecuritySettingsLink();
+    const sessionId = req.query.session_id;
+    const redirectUrl = authnest.getSecuritySettingsLink(null, null, sessionId);
     res.redirect(redirectUrl);
 });
 
-// For Notifications Settings
 app.get('/api/notificationsSettingsLink', (req, res) => {
-    const redirectUrl = authnest.getNotificationsSettingsLink();
+    const sessionId = req.query.session_id;
+    const redirectUrl = authnest.getNotificationsSettingsLink(null, null, sessionId);
     res.redirect(redirectUrl);
 });
 
 // New modal session endpoint
 app.post('/authnest/modal-session', (req, res) => {
-  const { modalType, modalId, userContext, parentUrl } = req.body;
-  
-  const session = authnest.get2FAModalSession({
-    userContext,
-    parentUrl,
-    redirect_uri: '/api/auth/modal-callback'
-  });
-  
-  res.json({
-    modalId,
-    iframeUrl: session.iframeUrl,
-    sessionId: session.sessionId
-  });
+    const { modalType, modalId, userContext, parentUrl } = req.body;
+
+    const session = authnest.get2FAModalSession({
+        userContext,
+        parentUrl,
+        redirect_uri: '/api/auth/modal-callback'
+    });
+
+    res.json({
+        modalId,
+        iframeUrl: session.iframeUrl,
+        sessionId: session.sessionId
+    });
 });
 
 // Modal callback (existing pattern)
 app.get('/api/auth/modal-callback', (req, res) => {
-  authnest.handleModalCallback(req, res);
+    authnest.handleModalCallback(req, res);
 });
 
 
