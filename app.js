@@ -4,7 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
-const AuthNestClient = require('authnest-client');
+const AuthNestClient = require('authnest-server');
 
 const app = express();
 const authnest = new AuthNestClient();

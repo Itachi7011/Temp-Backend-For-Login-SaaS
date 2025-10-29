@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "authnest_client": "file:../authnest_client",
+    "authnest-server": "^1.0.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^17.2.1",
