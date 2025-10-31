@@ -114,6 +114,116 @@ app.get('/api/userDataLink', (req, res) => {
     res.redirect(redirectUrl);
 });
 
+// Add this before the POST route
+// Add this before the POST route
+app.options('/api/authnest/authenticated-modal-session', (req, res) => {
+    console.log('🔧 Handling OPTIONS for authenticated-modal-session');
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, X-Website-ID');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
+    res.status(200).end();
+});
+
+// Fix the authenticated modal session endpoint in your client backend
+app.post('/api/authnest/authenticated-modal-session', async (req, res) => {
+  console.log('🚀 START: /api/authnest/authenticated-modal-session');
+  console.log('📦 Request headers:', {
+    origin: req.headers.origin,
+    referer: req.headers.referer,
+    'content-type': req.headers['content-type']
+  });
+  console.log('📦 Request body:', req.body);
+
+  try {
+    const { modalType, modalId, userToken, userContext, parentUrl } = req.body;
+
+    console.log('🔍 Parsed request data:', {
+      modalType,
+      modalId,
+      userTokenLength: userToken ? userToken.length : 0,
+      userTokenPreview: userToken ? `${userToken.substring(0, 20)}...` : 'none',
+      userContext: userContext ? 'present' : 'none',
+      parentUrl
+    });
+
+    // Set CORS headers
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, X-Website-ID');
+    res.removeHeader('X-Frame-Options');
+    res.header('Content-Security-Policy', `frame-ancestors ${req.headers.origin} http://localhost:3000 https://temp-backend-for-login-saas.onrender.com`);
+
+    if (!userToken) {
+      console.log('❌ ERROR: No user token provided');
+      throw new Error('User token is required');
+    }
+
+    console.log('📡 Calling authnest.getAuthenticatedModalSession...');
+    
+    const session = await authnest.getAuthenticatedModalSession(
+      modalType,
+      userToken,
+      {
+        userContext,
+        parentUrl,
+        modalId,
+        redirect_uri: '/api/auth/modal-callback'
+      }
+    );
+
+    console.log('✅ authnest.getAuthenticatedModalSession response:', {
+      iframeUrl: session.iframeUrl,
+      sessionId: session.sessionId,
+      modalId: session.modalId,
+      hasUser: !!session.user
+    });
+
+    // CRITICAL: Check the iframe URL
+    if (session.iframeUrl.includes('localhost:5000')) {
+      console.error('🚨 CRITICAL: iframeUrl contains localhost:5000!');
+      console.error('🚨 This should NOT happen with hardcoded URL');
+      console.error('🚨 Actual iframeUrl:', session.iframeUrl);
+    } else {
+      console.log('✅ iframeUrl looks correct:', session.iframeUrl);
+    }
+
+    const response = {
+      success: true,
+      modalId: session.modalId,
+      iframeUrl: session.iframeUrl,
+      sessionId: session.sessionId,
+      user: session.user
+    };
+
+    console.log('📤 Sending response:', response);
+    console.log('🏁 END: /api/authnest/authenticated-modal-session - SUCCESS');
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('💥 ERROR in /api/authnest/authenticated-modal-session:', error);
+    console.error('💥 Error stack:', error.stack);
+
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.removeHeader('X-Frame-Options');
+
+    const errorResponse = {
+      success: false,
+      error: 'Authentication failed',
+      message: error.message
+    };
+
+    console.log('📤 Sending error response:', errorResponse);
+    console.log('🏁 END: /api/authnest/authenticated-modal-session - ERROR');
+
+    res.status(401).json(errorResponse);
+  }
+});
+
 // New modal session endpoint
 app.post('/authnest/modal-session', (req, res) => {
     const { modalType, modalId, userContext, parentUrl } = req.body;
