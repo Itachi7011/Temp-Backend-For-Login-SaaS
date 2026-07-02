@@ -1,8 +1,10 @@
-// app.js
+// Our SaaS User's main server/backend file is app.js, currently this single file handles entire backend portion of user, we keep it short because we need to test only our own features
+
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const AuthNestClient = require('authnest-server');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const authnest = new AuthNestClient();
@@ -11,6 +13,7 @@ const authnest = new AuthNestClient();
 const routeHandlers = authnest.getRouteHandlers();
 
 app.use(AuthNestClient.getSecurityMiddlewares()); // ← This should work now
+app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
@@ -25,6 +28,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 // Simplified endpoints using the route handlers from package
 
+
 // Navigation routes
 app.get('/api/registrationLink', routeHandlers.registration);
 app.get('/api/loginLink', routeHandlers.login);
@@ -35,6 +39,31 @@ app.get('/api/securitySettingsLink', routeHandlers.securitySettings);
 app.get('/api/notificationsSettingsLink', routeHandlers.notificationsSettings);
 app.get('/api/clientDataLink', routeHandlers.clientData);
 app.get('/api/userDataLink', routeHandlers.userData);
+
+// app.post('/api/logout', routeHandlers.logout);
+// app.post('/api/logout-all', routeHandlers.logoutAll);
+
+// Add logging middleware for logout routes
+app.use((req, res, next) => {
+  if (req.path === '/api/logout' || req.path === '/api/logout-all') {
+    console.log(`📥 STEP 2: CLIENT BACKEND - Received ${req.method} ${req.path}`);
+    console.log('📥 Cookies:', req.cookies);
+    console.log('📥 Headers:', req.headers);
+  }
+  next();
+});
+
+// Keep your existing routes but add logging
+app.post('/api/logout', (req, res) => {
+  console.log('📥📥📥 STEP 2.1: CLIENT BACKEND - /api/logout route handler');
+  routeHandlers.logout(req, res);
+});
+
+app.post('/api/logout-all', (req, res) => {
+  console.log('📥📥📥 STEP 2.1: CLIENT BACKEND - /api/logout-all route handler');
+  routeHandlers.logoutAll(req, res);
+});
+
 
 // Special handlers
 app.get('/api/getUserData', routeHandlers.getUserData);
